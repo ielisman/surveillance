@@ -1,0 +1,55 @@
+  194  sudo yum install python36* -y
+  196  sudo yum install gcc gcc gcc-c++ cma
+  201  wget https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.tar.gz
+  202  which g++
+  205  mkdir face-recognition
+  206  cd face-recognition/
+  207  mv ../boost_1_76_0.tar.gz .
+  208  wget http://dlib.net/files/dlib-19.22.tar.bz2
+  210  mkdir install
+  211  mv *.* install/
+  213  cd install/
+  217  tar -xvf boost_1_76_0.tar.gz 
+  218  tar -xvf dlib-19.22.tar.bz2 
+  219  sudo rm dlib-19.22.tar.bz2 
+  220  sudo rm boost_1_76_0.tar.gz 
+  222  cd boost_1_76_0/
+  228  sudo ./bootstrap.sh — with-python=python3.6 — with-libraries=python — prefix=/usr
+  232  vi bootstrap.sh 
+         --- modify the following:
+         PREFIX=/usr
+         EPREFIX=/usr
+         LIBDIR=/usr/lib64
+         INCLUDEDIR=/usr/include
+         LIBS="--with-python"
+         PYTHON=python
+         PYTHON_VERSION=3.6
+         PYTHON_ROOT="/usr/bin/python3.6"
+         ...
+         using python : 3.6 : /usr/bin/python3.6 : /usr/include/python3.6m : /usr/lib64 ;       
+  233  sudo ./b2
+  234  export BOOST_INCLUDEDIR=/home/ielisman/face-recognition/install/boost_1_76_0
+  241  export BOOST_ROOT=/home/ielisman/face-recognition/install/boost_1_76_0
+  242  export BOOST_LIBRARYDIR=/home/ielisman/face-recognition/install/boost_1_76_0/stage/lib
+  252  sudo vi /etc/ld.so.conf.d/myapp.conf
+         --- append the following:
+         /home/ielisman/face-recognition/install/boost_1_76_0/stage/lib
+  253  sudo ldconfig
+  254  sudo ldconfig -v | grep boost
+  255  sudo rm /etc/ld.so.conf.d/myapp.conf
+  260  cd ../dlib-19.22/
+  303  sudo -E python3 setup.py install --prefix "/usr"
+  314  cd /etc/yum.repos.d/
+  316  more CentOS-Base.repo 
+  323  rpm -q centos-release
+  324  cat /etc/centos-release       
+  326  dnf check-update
+  --- update whole operating system
+  328  sudo dnf update
+  493  sudo dnf repolist --all
+  494  sudo dnf config-manager --set-enabled powertools
+  495  sudo dnf repolist --all
+  496  sudo dnf install opencv opencv-devel opencv-python
+  503  sudo pip3 install --upgrade pip
+  505  pip install opencv-contrib-python
+  511  python3 -c "import cv2; print(cv2.__version__)"
