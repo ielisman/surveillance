@@ -1,0 +1,35 @@
+Windows 10 (https://gist.github.com/velovix/8cbb9bb7fe86a08fb5aa7909b2950259 - also Ubuntu described here as well)
+
+1. Download the latest stable release of MSYS2 MinGW 64-bit (similar to cygwin)
+   https://github.com/msys2/msys2-installer/releases
+2. Let's get MSYS2 up-to-date
+   pacman -Syu
+3. Download and install gstreamer, python and dependencies
+   pacman -S mingw-w64-x86_64-gstreamer mingw-w64-x86_64-gst-devtools mingw-w64-x86_64-gst-plugins-{base,good,bad,ugly} mingw-w64-x86_64-python3 mingw-w64-x86_64-python3-gobject
+4. Download python pip
+   pacman -S mingw-w64-x86_64-python-pip
+5. Download and install opencv (in case it does not work for msys2 mingw, compile opencv for it (https://medium.com/csmadeeasy/opencv-c-installation-on-windows-with-mingw-c0fc1499f39)
+   pacman -S mingw-w64-x86_64-opencv
+6. Download and install opencv for python
+   pip install opencv-python
+7. Download and install required libraries for opencv to work
+   pacman -S --needed mingw-w64-x86_64-{ceres-solver,hdf5,python3-numpy,ogre3d,tesseract-ocr}
+8. Repeat installation of opencv and python again (just in case after libraries above were installed)
+   pacman -S mingw-w64-x86_64-opencv
+   python3 -m pip install opencv-python
+9. Ensure you also install gstream rtsp server
+   pacman -S mingw-w64-x86_64-gst-rtsp-server
+
+-------------------- running
+   Start RTSP server with camera connected (rtsp://localhost:8554/test)
+1. python3 rtsp-server2.py
+
+2. in different terminal retrieve video feed:
+   gst-launch-1.0 rtspsrc location=rtsp://localhost:8554/test latency=50 ! decodebin ! autovideosink
+   (you can run test script too: python3 main.py)
+
+
+PS: For Ubuntu
+sudo apt install libgstreamer1.0-0 gstreamer1.0-plugins-{base,good,bad,ugly} gstreamer1.0-tools python3-gi gir1.2-gstreamer-1.0
+# similar libraries as above for windows   
+
