@@ -1,0 +1,118 @@
+gst-launch filesrc location=video.ogv ! decodebin ! pngenc ! multifilesink location=img%d.png (or jpgenc instead of pngenc)
+ffmpeg -i video.ogv -f image 2 video-frames-%08png
+
+--
+
+gst-launch v4l2src device=/dev/video1 ! video/x-raw-yuv,framerate=30/1 ! ffmpegcolorspace ! pngenc ! multifilesink location="frame%d.png"
+However, this does not actually output every frame, meaning that if I record for 2 seconds at 30 fps, I don't get 60 images. I'm assuming this is because the encoding can't go that fast, so I need another method.
+
+A: you could simply add a queue in there like this:
+   gst-launch v4l2src device=/dev/video1 ! video/x-raw-yuv,framerate=30/1 ! queue ! ffmpegcolorspace ! pngenc ! multifilesink location="frame%d.png"
+   This should make sure the video-capture is allowed to run at 30 fps, and then writing it to disk can happen in its own tempo. 
+   Just be aware that the queue will grow to quite a large size if you leave this setup for too long.
+
+A: ffmpeg -i movie.avi frame%05d.png
+
+A: I ended up doing this in two parts. 
+   Write video to file: gst-launch v4l2src device=/dev/video2 ! video/x-raw-yuv,framerate=30/1 ! xvidenc ! queue ! avimux ! filesink location=test.avi
+   Post process: gst-launch-1.0 --gst-debug-level=3 filesrc location=test.avi ! decodebin ! queue ! autovideoconvert ! pngenc ! multifilesink location="frame%d.png"
+
+
+-----
+
+Q: I am builidng a video streaming pipeline. I want to capture thubmnails of video stream which is live. I have used jpegenc to encode buffer into jpeg and save it through a filesink. 
+   I dont want every frame to be saved, I want to save only 10th frame, (i.e modulo 10, this should be configurable). How can I do that? (The stream is coming from rtsp source)
+   
+A: The following solution might not be mathematically correct (e.g. to capture every 10th frame with 100% accuracy) but maybe it is worth mentioning. 
+   It is based on gstreamer's videorate element which can manipulate video FPS (frames per second).
+   
+   Lets assume we you have rtsp source similar like this one: rtsp://freja.hiof.no:1935/rtplive/_definst_/hessdalen03.stream
+   (public camera, H264 video, framerate=60000/1001=~60 frames per second).
+   
+   Pipeline: 
+   gst-launch-1.0 -v rtspsrc location="rtsp://freja.hiof.no:1935/rtplive/_definst_/hessdalen03.stream" ! rtph264depay ! avdec_h264 ! timeoverlay halignment=right valignment=bottom \
+   ! videorate ! video/x-raw,framerate=60000/1001 ! jpegenc ! multifilesink location="./frame%08d.jpg"
+   
+   should capture every received video frame and save it as jpg image. But if you modify viderate caps like this video/x-raw,framerate=6000/1001
+   rate of capturing frames will be ~6 fps (10 times less, theoretically every 6th frame should be captured). So knowing input video's framerate you could modify viderate "output" 
+   caps to achieve the wanted "output" framerate.
+   Note that I added timeoverlay halignment=right valignment=bottomwhich will add pipeline running timestamp to video/jpg images for easier trace.
+   
+Q: I need to take one frame from video stream from web camera and write it to the file. 
+   In ffmpeg I could do it in this way: ffmpeg -i rtsp://10.6.101.40:554/video.3gp -t 1 img.png
+   
+Also read
+   https://forums.developer.nvidia.com/t/can-i-capture-still-image-during-streaming-video-in-gstreamer/158105/23
+   
+---
+
+You need to add -e flag (end of stream) so that mp4mux can finalize file or else you'll get corrupted non playable file (note that this is 264 encoded stream - we want 265)
+gst-launch -e rtspsrc location=url ! decodebin ! x264enc ! mp4mux ! filesink location=file.mp4
+   
+
+If your rtspsrc stream is already encoded in H264, just write to mp4 container directly, instead of doing codec process.
+
+Here is my gst-launch-1.0 command for recording rtsp to mp4:
+
+$ gst-launch-1.0 -e rtspsrc location=rtsp://admin:pass@192.168.85.7/rtsph2641080p protocols=tcp ! rtph264depay ! h264parse ! mp4mux ! filesink location=~/camera.mp4
+If you want to do something like modifying width, height (using videoscale), colorspace (using videoconvert), framerate (using capsfilter), etc., which should do based on capability of video/x-raw type, you should decode from video/x-h264 to video/x-raw.
+
+And, after modifying, you should encode again before linking to mux element (like mp4mux, mpegtsmux, matroskamux, ...).
+
+It seems like you are not sure when to use video decoder. Here simply share some experience of using video codec:
+
+If source has been encoded, and I want to write to the container with the same encode, then the pipeline will like:
+
+src ! ... ! mux ! filesink
+
+If source has been encoded, and I want to write to the container with different encode, or I want to play with videosink, then the pipeline will like:
+
+src ! decode ! ... ! encode ! mux ! filesink 
+src ! decode ! ... ! videosink
+
+If source hasn't been encoded (like videotestsrc), and I want to write to the container, then the pipeline will like:
+
+src ! encode ! mux ! filesink
+
+Note: It costs high cpu resources when doing codec ! So, if you don't need to do codec work, don't do that.
+
+You can check out src, sink, mux, demux, enc, dec, convert, ..., etc. elements using convenient tool gst-inspect-1.0. For example:
+
+$ gst-inspect-1.0 | grep mux
+to show all available mux elements.
+
+
+import cv2
+import numpy as np
+cap = cv2.VideoCapture("rtsp://admin:admin@xxx.xxx.xxx.xxx:xxx/media/video1/video")
+
+while True:
+    ret, img = cap.read()
+    if ret == True:
+    cv2.imshow('video output', img)
+    k = cv2.waitKey(10)& 0xff
+    if k == 27:
+        break
+cap.release()
+cv2.destroyAllWindows()
+
+-----
+
+import os
+os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;udp"
+
+cv2.VideoCapture(<stream URI>, cv2.CAP_FFMPEG)
+
+ret, frame = cap.read()
+
+while ret:
+    cv2.imshow('frame', frame)
+    # do other processing on frame...
+
+    ret, frame = cap.read()
+    if (cv2.waitKey(1) & 0xFF == ord('q')):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
+  

@@ -1,0 +1,35 @@
+curl --request POST 'http://34.230.67.26:5000/6/detector?multiface_policy=1&estimate_quality=1&estimate_eyes_attributes=1&pitch_threshold=180' --header 'Luna-Request-Id: 1536751345,8b8b5937-2e9c-4e8b-a7a7-5caf86621b5a' --header 'Luna-Account-Id: 8b8b5937-2e9c-4e8b-a7a7-5caf86621b5a' --header 'Content-Type: multipart/form-data' --form 'image=@me.jpg' --form 'face_bounding_boxes=[{"filename": "me.jpg", "face_bounding_boxes": [{"x": 0, "y": 0, "width": 2500, "height": 2500}]}]; type=application/json'
+
+curl --request POST 'http://34.230.67.26:5000/6/detector?multiface_policy=1&estimate_quality=1&estimate_eyes_attributes=1&pitch_threshold=180' --header 'Luna-Request-Id: 1536751345,8b8b5937-2e9c-4e8b-a7a7-5caf86621b5a' --header 'Luna-Account-Id: 0921ad76-0ab5-430e-b857-5ff48baca0c7' --header 'Content-Type: multipart/form-data' --form 'image=@me.jpg' --form 'face_bounding_boxes=[{"filename": "me.jpg", "face_bounding_boxes": [{"x": 0, "y": 0, "width": 2500, "height": 2500}]}]; type=application/json'
+
+$ curl --request POST 'http://34.230.67.26:5000/6/detector?multiface_policy=1&estimate_quality=1&estimate_eyes_attributes=1&pitch_threshold=180&estimate_mask=1&estimate_mouth_attributes=1' --header 'Luna-Request-Id: 1536751345,8b8b5937-2e9c-4e8b-a7a7-5caf86621b5a' --header 'Luna-Account-Id: 0921ad76-0ab5-430e-b857-5ff48baca0c7' --header 'Content-Type: multipart/form-data' --form 'image=@me.jpg' --form 'face_bounding_boxes=[{"filename": "me.jpg", "face_bounding_boxes": [{"x": 0, "y": 0, "width": 2500, "height": 2500}]}]; type=application/json'
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  101k  100  1367  100  100k  12097   885k --:--:-- --:--:-- --:--:--  897k{"images":[{"filename":"me.jpg","error":{"error_code":0,"desc":"Success","detail":"Success"},"status":1,"detections":{"samples":[{"face":{"detection":{"rect":{"x":184,"y":75,"width":269,"height":357},"landmarks5":[[67,67],[192,192],[130,130],[60,60],[202,202]],"quality":{"blurriness":0.9201754332,"dark":0.7233461142,"illumination":0.3112375736,"specularity":0.5643593669,"light":0.7759353518},"attributes":{"eyes_attributes":{"right_eye":{"state":"open","iris_landmarks":[[151,151],[152,152],[152,152],[153,153],[153,153],[154,154],[155,155],[156,156],[157,157],[158,158],[159,159],[160,160],[161,161],[161,161],[162,162],[162,162],[162,162],[162,162],[162,162],[161,161],[160,160],[160,160],[159,159],[158,158],[157,157],[156,156],[155,155],[154,154],[153,153],[152,152],[152,152],[152,152]]},"left_eye":{"state":"open","iris_landmarks":[[92,92],[93,93],[93,93],[93,93],[94,94],[95,95],[96,96],[97,97],[98,98],[99,99],[99,99],[100,100],[101,101],[102,102],[102,102],[102,102],[102,102],[102,102],[102,102],[102,102],[101,101],[100,100],[99,99],[98,98],[97,97],[96,96],[95,95],[95,95],[94,94],[93,93],[93,93],[92,92]]}},"head_pose":{"pitch":-1.059335947,"roll":1.3570383787,"yaw":-1.5222616196}}},"url":"\/6\/samples\/faces\/9381f14b-2c79-4f80-abcd-cef386a2fb96","sample_id":"9381f14b-2c79-4f80-abcd-cef386a2fb96"}}],"filtered_detections":{"face_detections":[]}}}]}
+
+
+http://34.230.67.26:5000/6/samples/faces/9381f14b-2c79-4f80-abcd-cef386a2fb96
+
+Postgress:
+34.230.67.26
+5432
+luna/luna
+
+curl -i -X POST -H "Luna-Account-Id: 8b8b5937-2e9c-4e8b-a7a7-5caf86621b5a" -H "Content-Type: multipart/form-data" --form "image=@image.jpg" "http://34.230.67.26:5000/6/detector?multiface_policy=1&estimate_quality=1" 
+
+
+
+curl  --request POST 'http://127.0.0.1:5000/6/detector?multiface_policy=1&estimate_quality=1&estimate_eyes_attributes=1&pitch_threshold=180' \
+--header 'Luna-Request-Id: 1536751345,8b8b5937-2e9c-4e8b-a7a7-5caf86621b5a' \
+--header 'Luna-Account-Id: 8b8b5937-2e9c-4e8b-a7a7-5caf86621b5a' \
+--header 'Content-Type: multipart/form-data' \
+--form 'image=@image.jpg' \
+--form 'face_bounding_boxes=[{"filename": "image.jpg", "face_bounding_boxes": [{"x": 0, "y": 0, "width": 2500, "height": 2500}]}]; type=application/json'
+
+
+curl  --request POST 'http://34.230.67.26:5000/6/detector?multiface_policy=1&estimate_quality=1&estimate_eyes_attributes=1&pitch_threshold=180' \
+--header 'Luna-Request-Id: 1536751345,8b8b5937-2e9c-4e8b-a7a7-5caf86621b5a' \
+--header 'Luna-Account-Id: 8b8b5937-2e9c-4e8b-a7a7-5caf86621b5a' \
+--header 'Content-Type: multipart/form-data' \
+--form 'image=@image.jpg' \
+--form 'face_bounding_boxes=[{"filename": "image.jpg", "face_bounding_boxes": [{"x": 0, "y": 0, "width": 2500, "height": 2500}]}]; type=application/json'
