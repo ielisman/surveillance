@@ -1,0 +1,7 @@
+{
+    "name": "Python: Debug Unit Tests",
+    "type": "python",
+    "request": "test",
+    "console": "integratedTerminal",
+    "justMyCode": false
+  }
