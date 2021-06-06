@@ -1,5 +1,6 @@
 # https://towardsdatascience.com/face-detection-models-which-to-use-and-why-d263e82c302c
 # https://github.com/vardanagarwal/Proctoring-AI
+# recognition: https://sefiks.com/2020/07/24/face-recognition-with-opencv-dnn-in-python/
 
 import cv2
 import numpy as np
