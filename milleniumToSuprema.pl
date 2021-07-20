@@ -1,6 +1,7 @@
 use Date::Manip;
 use File::Basename;
 use Text::CSV;
+use Getopt::Long;
 
 ## Millenium Columns
 $employeeID         = 'Employee ID';            # 32
@@ -12,7 +13,10 @@ $card1Active        = 'Card 1 Active';          # True
 $card1Activation    = 'Card 1 Activation Date'; # 3/13/2019 12:00:00 AM
 $card1Expiration    = 'Card 1 Expiration Date'; # 1/1/2150 12:00:00 AM
 
-$file               = shift;
+my $file; 
+my $supremaLookupFl;
+GetOptions('m=s' => \$file, 's=s' => \$supremaLookupFl);
+
 $now                = ParseDate("now");
 $base               = basename($file, ".csv");
 $fileInactive       = qq(${base}.inactive.csv);
@@ -23,6 +27,7 @@ $expiredCnt         = 0;
 $cntNames           = 0;
 $totalNames         = 0;
 my $csv             = Text::CSV->new ({ binary => 1, auto_diag => 1 });
+%lookup             = &parseSupremaLookup($supremaLookupFl);
 
 open my $fh, "<", $file or die "$file: $!";
 while (my $row = $csv->getline ($fh)) {
@@ -73,7 +78,20 @@ while (my $row = $csv->getline ($fh)) {
                 $edate3         = &UnixDate($col[$hashColInd{'Card 3 Expiration Date'}],"%Y%m%d");
 
                 push(@{$hashName{$name}},qq($emid,"$fname","$lname",$card,$sdate,$edate,$card2,$sdate2,$edate2,$card3,$sdate3,$edate3)); # only names are dupes (no dupes for cards or employee ids)
-                $recHash{$emid} = qq($emid,"$name",$card,$sdate,$edate);
+                
+                if (!exists $lookup{$emid}) { 
+                    $recHash{$emid} = qq($emid,"$name",$card,$sdate,$edate);
+                    $supremaName = $lookup{$emid}->[2];
+                    if ($supremaName ne $name) { 
+                        print qq($emid,$name,$card,$sdate,$edate\n);
+                    }
+                } else { 
+                    $supremaName = $lookup{$emid}->[2];
+                    if ($supremaName ne $name) { 
+                        #print qq($emid : $name <=> $supremaName\n);
+                    }
+                }
+                
             }
         } else { # show inactive 1st cards 
             if ($inactiveCnt==0) {
@@ -114,6 +132,28 @@ close FLN if ($cntNames>0);
 print qq(Total number of inactive accounts: $inactiveCnt out of $i\n)   if ($inactiveCnt);
 print qq(Total number of expired accounts: $expiredCnt out of $i\n) if ($expiredCnt);
 print qq(Same active names appearances: $cntNames out of $totalNames\n) if ($cntNames);
+
+sub parseSupremaLookup() { 
+    my ($file) = @_;
+    my (%lookupHash);
+    if (-f $file) {
+        my $cnt = 0;
+        open my $fh, "<", $file or die "$file: $!";
+        while (my $row = $csv->getline ($fh)) {
+            my @col = @$row;
+            if ($cnt == 0) { 
+                # header row
+            } else { 
+                $lookupHash{$col[1]} = $row; # eid
+            }
+            $cnt++;
+        }
+        close $fh;
+    } else { 
+        print qq(No Suprema lookup file found $file\n);
+    }
+    return %lookupHash;
+}
 
 sub trim() { 
     my ($s) = @_;
