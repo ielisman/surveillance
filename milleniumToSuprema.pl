@@ -127,11 +127,12 @@ for $name (sort keys %hashName) {
             $csv->parse($rec);
             @col = $csv->fields();
             $emid = $col[0];
+            $card = $col[3];
             $curName = qq("$col[1] $col[2]");
             $newName = qq("$col[1] $col[2] - C${crdCnt}");
             $fmtSdate = ( &ParseDate($col[4]) ge $maxBiostar2Date ) ? $ymdBiostar2MDate : $col[4];
             $fmtEdate = ( &ParseDate($col[5]) ge $maxBiostar2Date)  ? $ymdBiostar2MDate : $col[5];
-            $modRec = qq($emid,$newName,$col[3],$fmtSdate,$fmtEdate);
+            $modRec = qq($emid,$newName,$fmtSdate,$fmtEdate,$card);
 
             if (exists $newUsersHash{$emid}) { 
                 #print qq(Replacing new rec <$newUsersHash{$emid}> with <$modRec>\n);    
@@ -161,7 +162,7 @@ print qq(Same active names appearances: $cntNames out of $totalNames\n) if ($cnt
 # create updated list of users in Biostar 2
 &createBioStarFile(qq(biostar.upd.${fmtNow}.csv),%updatedUsersHash);
 # create duplicate list of users in Biostar 2
-&createBioStarFile(qq(biostar.dup.${fmtNow}.csv),%duplicates);
+&createBioStarDupFile(qq(biostar.dup.${fmtNow}.csv),%duplicates);
 
 sub createBioStarFile() { 
     my ($file, %hash) = @_;
@@ -172,6 +173,23 @@ sub createBioStarFile() {
         #print qq($hash{$key}\n);
     }
     close FL;
+}
+
+sub createBioStarDupFile() { 
+    my ($file, %hash) = @_;
+    open FL, qq(>${file}) or die qq(cant create $file : $!\n);
+    print FL qq(user_id,name,start_datetime,expiry_datetime,26 bit SIA Standard-H10301\n);
+    @sorted = sort { getName($hash{$a}) cmp getName($hash{$b})  } keys %hash;
+    foreach my $rec (@sorted) {
+        print FL qq($hash{$rec}\n);
+    }
+    close FL;
+}
+
+sub getName() { 
+    my ($rec) = @_;
+    $csv->parse($rec);
+    return ($csv->fields())[1];
 }
 
 sub parseBiostar2Lookup() { 
