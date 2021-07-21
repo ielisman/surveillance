@@ -63,7 +63,7 @@ while (my $row = $csv->getline ($fh)) {
             if (&trim($startDate) && &trim($endDate) && 
                     ($now ge $startDate && $now le $endDate)) # cards are active and dates are within range
             { 
-                $emid           = $col[$hashColInd{$employeeID}];
+                $emid           = &formatEmployeeIdBiostar2($col[$hashColInd{$employeeID}]);
                 $fname          = $col[$hashColInd{$firstName}];
                 $lname          = $col[$hashColInd{$lastName}];
                 $name           = qq($fname $lname); 
@@ -212,6 +212,13 @@ sub parseBiostar2Lookup() {
         print qq(No Biostar2 lookup file found $file\n);
     }
     return %lookupHash;
+}
+
+sub formatEmployeeIdBiostar2() { 
+    my ($id) = @_;
+    $id =~ s/\s/\_/g;
+    $id = qq(90olk-alb-nug) if ($id eq "90olk;");
+    return $id;
 }
 
 sub trim() { 
